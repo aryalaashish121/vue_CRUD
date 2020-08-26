@@ -1,0 +1,10 @@
+CREATE TABLE `crud_vue`.`customer_details` 
+( `id` INT(54) NULL AUTO_INCREMENT ,
+ `fname` VARCHAR(255) NOT NULL , 
+ `lname` VARCHAR(255) NOT NULL , 
+ `address` VARCHAR(255) NOT NULL , 
+ `city` VARCHAR(255) NOT NULL , 
+ `country` VARCHAR(255) NOT NULL , 
+ `pin` VARCHAR(255) NOT NULL , 
+ PRIMARY KEY (`id`)) 
+ ENGINE = InnoDB;
