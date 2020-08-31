@@ -7,20 +7,15 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/screen.css" />
+
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
-
 <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-<link rel="stylesheet" href="css/style.css" />
-<link rel="stylesheet" href="css/modal.css" />
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script type="text/javascript" src="jquery.validate.js"></script>
 
-<!-- <script>
-$(document).ready(function(){
-	$('[data-toggle="tooltip"]').tooltip();
-});
-</script> -->
 </head>
 <body>
 <div class="container-xl" id="crudApp">
@@ -35,9 +30,7 @@ $(document).ready(function(){
                             <input type="text" class="form-control" placeholder="Search&hellip;" v-model="queryValue" @keyup="searchData()"/>
                         </div>
                         <div class="col-md-6" align="right">
-                        
-                        <!-- <input type="button" class="btn btn-success btn-xs" @click="addCustomer1" value="Add New" /> -->
-                    </div>
+                         </div>
                     </div>
 
                     
@@ -49,9 +42,9 @@ $(document).ready(function(){
                         <th>id</th>
                         <th>Name <i class="fa fa-sort"></i></th>
                         <th>Address</th>
-                        <th>City <i class="fa fa-sort"></i></th>
-                        <th>Pin Code</th>
-                        <th>Country <i class="fa fa-sort"></i></th>
+                        <th>email <i class="fa fa-sort"></i></th>
+                        <th>phone Code</th>
+                        <th>profile <i class="fa fa-sort"></i></th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -60,9 +53,10 @@ $(document).ready(function(){
                         <td>{{ row.id }}</td>
                         <td>{{ row.fname }} {{ row.lname}}</td>
                         <td>{{ row.address }}</td>
-                        <td>{{ row.city }}</td>
-                        <td>{{ row.pin }}</td>
-                        <td>{{ row.country }}</td>
+                        <td>{{ row.email }}</td>
+                        <td>{{ row.phone }}</td>
+                      
+                        <td><img v-bind:src="('http://localhost/vueproject/'+row.profile)" alt="customer image" width="100" height="100"/></td>
                         <td>
                              <a href="#" @click="updateData(row.id)" name="edit" class="edit" title="Edit" data-toggle="tooltip"><i class="material-icons">&#xE254;</i></a>
                             <a href="#" class="delete" title="Delete" name="delete" @click="deleteData(row.id)" data-toggle="tooltip"><i class="material-icons">&#xE872;</i></a>
@@ -79,34 +73,46 @@ $(document).ready(function(){
     </div> 
 
     <div>
+    <p v-if="errors.length">
+    <b>Please correct the following error(s):</b>
+    <ul>
+      <li class="text-danger" v-for="error in errors">{{ error }}</li>
+    </ul>
+  </p>
+
     <div class="form-group">
            <label>Enter First Name</label>
-           <input type="text" class="form-control" v-model="fname" />
+           <input type="text" id="fname" class="form-control" v-model="fname"/>
           </div>
           <div class="form-group">
-           <label>Enter Last Name</label>
-           <input type="text" class="form-control" v-model="lname" />
+           <label>Enter Last Name</label><h5>
+           <input type="text" id="lname" class="form-control" v-model="lname" />
           </div>
           <div class="form-group">
            <label>Enter Address</label>
-           <input type="text" class="form-control" v-model="address" />
+           <input type="text" class="form-control" v-model="address"/>
           </div>
           <div class="form-group">
-           <label>Enter City</label>
-           <input type="text" class="form-control" v-model="city" />
+           <label>Enter email</label>
+           <input type="email" class="form-control" v-model="email"/>
           </div>
+          
           <div class="form-group">
-           <label>Enter Country</label>
-           <input type="text" class="form-control" v-model="country" />
+           <label>Enter phone no.</label>
+           <input type="text"  class="form-control" v-model="phone" maxlength="10" minlength="10"/>
           </div>
+
           <div class="form-group">
-           <label>Enter Pin no.</label>
-           <input type="text" class="form-control" v-model="pin" />
+           <label>Enter profile</label>
+           <input type="file" class="form-control"  ref="profile" id="profile"  @change="uploadImage" />
+           <input type="hidden" class="form-control" v-model="imageName"/>
+         </div>
           </div>
+
           <div align="center">
-          <input type="hidden" id="currentCustomerid" v-model="id"/>
+          <input type="hidden" id="currentCustomerid"/>
            <!-- <input type="hidden" v-model="hiddenId" /> -->
-           <input type="button" class="btn btn-success btn-xs" value="ADD New Customer" @click="addCustomer" />
+           <input type="button" class="btn btn-success btn-xs" value="ADD New Customer" @click="addCustomer($event)" />
            <input type="button" class="btn btn-success btn-xs" value="Update Customer" @click="updateButton" />
            <hr>
           </div>
@@ -119,20 +125,12 @@ $(document).ready(function(){
 
 
 <script>
-
 var application = new Vue({
     el:'#crudApp',
     data:{
-        allData:'',
-        fname:'',
-        lname:'',
-        address:'',
-        city:'',
-        pin:'',
-        country:'',
-        id: '',
-        nodata:false,
-        query:''
+        allData:'',imageName:'',fname:'',lname:'', address:'',email:'',phone:'',profile:'',id: '',stringVal:'',
+        nodata:false, query:'',queryValue:'',
+         errors:'',phoneVal:''
     },
 
     methods:{
@@ -148,16 +146,17 @@ var application = new Vue({
                
             });
         },
-
+        
         addCustomer:function(){
+            application.formValidation();
             axios.post('action.php',{
                 action:'addCustomerData',
                 fname:application.fname,
                 lname:application.lname,
-                city:application.city,
-                pin:application.pin,
+                email:application.email,
+                phone:application.phone,
                 address:application.address,
-                country:application.country
+                profile:application.imageName
             }).then(function(response){
                 application.fetchAllData();
                 application.cleanForm();
@@ -177,6 +176,7 @@ var application = new Vue({
             }
         },
         updateData:function(id){
+            
             axios.post('action.php',{
                 action:'fetchById',
                 id:id
@@ -184,27 +184,30 @@ var application = new Vue({
                 application.id = response.data.id;
                 application.fname=response.data.fname;
                 application.lname=response.data.lname;
-                application.city=response.data.city;
+                application.email=response.data.email;
                 application.address=response.data.address;
-                application.country=response.data.country;
-                application.pin=response.data.pin;
+                //application.profile=response.data.profile;
+                application.imageName=response.data.profile;
+                application.phone=response.data.phone;
             }); 
         },
         updateButton:function(){
+            if(application.formValidation()){
             axios.post('action.php',{
                 action:'updateDetails',
                 id:application.id,
                 fname:application.fname,
                 lname:application.lname,
-                city:application.city,
-                pin:application.pin,
+                email:application.email,
+                phone:application.phone,
                 address:application.address,
-                country:application.country
+                profile:application.imageName
             }).then(function(response){
                 application.fetchAllData();
                 application.cleanForm();
                 alert(response.data.message);
             });
+        }
         },
         searchData:function(){
             // alert(application.queryValue)
@@ -227,12 +230,94 @@ var application = new Vue({
         cleanForm:function(){
             application.fname=null,
             application.lname = null,
-            application.country = null,
-            application.city=null,
+            application.profile = null,
+            application.email=null,
             application.address=null,
             application.id=null,
-            application.pin=null
+            application.phone=null,
+            application.imageName=null
+        },
+        uploadImage:function(){
+            application.profile = application.$refs.profile.files[0];
+
+            var formData = new FormData();
+
+        formData.append('file', application.profile);
+
+        axios.post('uploadimage.php',  formData, {
+        header:{
+        'Content-Type' : 'multipart/form-data'
         }
+        }).then(function(response){
+            if(response.data.image ==''){
+                alert(response.data.message);
+                application.profile=null;
+            }
+            else{
+                    application.imageName = response.data.image;
+            }
+
+        }).catch(function (error) {
+           console.log(error);
+       });
+
+
+        },
+        formValidation:function(error){
+            if(this.fname && this.lname && this.email && this.address && this.imageName && this.phone){
+                return true;
+                
+            }
+            this.errors = [];
+            stringVal = /^[a-zA-Z]+$/;
+            phoneVal = /^\d{10}$/;
+                //name errors
+            if(!this.fname){
+                this.errors.push('First name required');
+            }else if(this.fname == stringVal){
+                this.errors.push('Special Character are not allowed');
+            }
+                // last name errors
+            if(!this.lname){
+                this.errors.push('Last name Required');
+            }
+                //email errors
+            if (!this.email) {
+                 this.errors.push('Please enter a vaild email..');
+                }
+            else if (!this.validEmail(this.email)) {
+                    this.errors.push('Your Email address is not vaild! Enter vaild address..');
+            }
+                //address
+            if(!this.address){
+                this.errors.push('Please enter your address');
+            }
+                //phone errors
+            if(!this.phone){
+                this.errors.push('Please enter your phone no');
+            }else if(this.phone.length!=10){
+                this.errors.push('Enter phone number is not vaild! Phone number must be of only 10 digit.')
+            }
+            if(!(this.phone).match(phoneVal)){
+                this.errors.push("Error phone number! Phone number does not contain letters.")
+            }
+
+            if(!this.imageName){
+                this.errors.push('Please Select Customer Image');
+            }
+           
+             error.preventDefault();
+
+            
+        },
+        
+        validEmail: function (email) {
+             var re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+            return re.test(email);
+
+        }
+       
+
     },
     created:function(){
   this.fetchAllData();

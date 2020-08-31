@@ -5,10 +5,11 @@
 $connect = new PDO("mysql:host=localhost;dbname=crud_vue", "root", "");
 $received_data = json_decode(file_get_contents("php://input"));
 $data = array();
+$image = '';
 if($received_data->action == 'fetchall')
 {
  $query = "
- SELECT * FROM customer_details 
+ SELECT * FROM customer_table 
  ";
  $statement = $connect->prepare($query);
  $statement->execute();
@@ -25,16 +26,16 @@ if($received_data->action == 'addCustomerData')
       
 {
     $data = array(
-        ':fname'=>$received_data->fname,
         ':lname'=>$received_data->lname,
+        ':fname'=>$received_data->fname,
         ':address'=>$received_data->address,
-        ':city'=>$received_data->city,
-        ':pin'=>$received_data->pin,
-        ':country'=>$received_data->country
+        ':email'=>$received_data->email,
+        ':phone'=>$received_data->phone,
+        ':profile'=>$received_data->profile
     );
 
-    $query = "insert into customer_details(id,fname,lname,address,city,pin,country) 
-     values (null,:fname, :lname, :address, :city, :pin, :country)";
+    $query = "insert into customer_table(id,fname,lname,address,email,phone,profile) 
+     values (null,:fname, :lname, :address, :email, :phone, :profile)";
      
     $statement = $connect->prepare($query);
     $statement->execute($data);
@@ -51,7 +52,7 @@ if($received_data->action=='deleteCustomerDetails'){
     $data = array(
         ':id'=>$received_data->id
     );
-    $query = "Delete from customer_details where id=:id";
+    $query = "Delete from customer_table where id=:id";
     $statement = $connect->prepare($query);
     $statement->execute($data);
 
@@ -67,7 +68,7 @@ if($received_data->action=='fetchById'){
     $data = array(
         ':id'=>$received_data->id
     );
-    $query = "select * from customer_details where id=:id";
+    $query = "select * from customer_table where id=:id";
     $statement = $connect->prepare($query);
     $statement->execute($data);
 
@@ -78,10 +79,10 @@ if($received_data->action=='fetchById'){
      $data['id'] = $row['id'];
      $data['fname'] = $row['fname'];
      $data['lname'] = $row['lname'];
-     $data['city']=$row['city'];
+     $data['email']=$row['email'];
      $data['address'] = $row['address'];
-     $data['country'] = $row['country'];
-     $data['pin'] = $row['pin'];
+     $data['profile'] = $row['profile'];
+     $data['phone'] = $row['phone'];
     }
    
     echo json_encode($data);
@@ -90,15 +91,15 @@ if($received_data->action=='fetchById'){
 if($received_data->action == 'updateDetails'){
     $data = array(
         ':id'=>$received_data->id,
-        ':fname'=>$received_data->fname,
         ':lname'=>$received_data->lname,
+        ':fname'=>$received_data->fname,
         ':address'=>$received_data->address,
-        ':city'=>$received_data->city,
-        ':pin'=>$received_data->pin,
-        ':country'=>$received_data->country
+        ':email'=>$received_data->email,
+        ':phone'=>$received_data->phone,
+        ':profile'=>$received_data->profile
     );
-    $query = "UPDATE `customer_details` 
-    SET `fname`=:fname,`lname`=:lname,`address`=:address,`city`=:city,`pin`=:pin,`country`=:country 
+    $query = "UPDATE `customer_table` 
+    SET `fname`=:fname,`lname`=:lname,`address`=:address,`email`=:email,`phone`=:phone,`profile`=:profile 
     WHERE id=:id";
     $statement = $connect->prepare($query);
     $statement->execute($data);
@@ -115,7 +116,7 @@ if($received_data->action =='searchData'){
 $searchValue= $received_data->query;  
 if($searchValue!=null){
     $query = "
-	SELECT * FROM customer_details 
+	SELECT * FROM customer_table 
 	WHERE fname LIKE '%".$searchValue."%' 
 	OR lname LIKE '%".$searchValue."%' 
 	ORDER BY id DESC
@@ -123,7 +124,7 @@ if($searchValue!=null){
 }
 else{
     $query = "
-    SELECT * FROM customer_details 
+    SELECT * FROM customer_table 
     ORDER BY id DESC
     ";
 }
@@ -138,5 +139,42 @@ else{
 
     echo json_encode($data);
 }
+
+// if($received_data->action =='upload'){
+// if(isset($_FILES['file']['name']))
+// {
+//  $image_name = $_FILES['file']['name'];
+//  $valid_extensions = array("jpg","jpeg","png");
+//  $extension = pathinfo($image_name, PATHINFO_EXTENSION);
+//  if(in_array($extension, $valid_extensions))
+//  {
+//   $upload_path = 'upload/' . time() . '.' . $extension;
+//   if(move_uploaded_file($_FILES['file']['tmp_name'], $upload_path))
+//   {
+//    $message = 'Image Uploaded';
+//    $image = $upload_path;
+//   }
+//   else
+//   {
+//    $message = 'There is an error while uploading image';
+//   }
+//  }
+//  else
+//  {
+//   $message = 'Only .jpg, .jpeg and .png Image allowed to upload';
+//  }
+// }
+// else
+// {
+//  $message = 'Select Image';
+// }
+
+// $output = array(
+//  'message'  => $message,
+//  'image'   => $image
+// );
+
+// echo json_encode($output);
+// }
 
 ?>
